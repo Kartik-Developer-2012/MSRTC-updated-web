@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
-import { Bus, Shield, Phone, Mail, MapPin, ExternalLink, Globe, ChevronRight, Award } from 'lucide-react';
+import { Bus, Shield, Phone, Mail, MapPin, ExternalLink, Globe, ChevronRight, Award, Heart } from 'lucide-react';
 
 export const Footer = () => {
   const { lang } = useLanguage();
@@ -176,18 +176,36 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Copyright Bar */}
+      {/* Bottom Copyright & Credit Bar */}
       <div className="bg-slate-900/90 border-t border-slate-800/80 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-400">
-          <p>© 2026 Maharashtra State Road Transport Corporation (MSRTC). All Rights Reserved.</p>
-          <div className="flex items-center gap-4">
-            <Link to="/privacy" className="hover:text-amber-400 transition-colors">Privacy Policy</Link>
-            <span className="text-slate-700">|</span>
-            <Link to="/terms" className="hover:text-amber-400 transition-colors">Terms of Service</Link>
-            <span className="text-slate-700">|</span>
-            <Link to="/accessibility" className="hover:text-amber-400 transition-colors">Accessibility</Link>
-            <span className="text-slate-700">|</span>
-            <span>Visitors: <strong className="text-amber-400 font-mono">8,381,925</strong></span>
+        <div className="max-w-7xl mx-auto space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-400">
+            <p>© 2026 Maharashtra State Road Transport Corporation (MSRTC). All Rights Reserved.</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link to="/privacy" className="hover:text-amber-400 transition-colors">Privacy Policy</Link>
+              <span className="text-slate-700">|</span>
+              <Link to="/terms" className="hover:text-amber-400 transition-colors">Terms of Service</Link>
+              <span className="text-slate-700">|</span>
+              <Link to="/accessibility" className="hover:text-amber-400 transition-colors">Accessibility</Link>
+              <span className="text-slate-700">|</span>
+              <span>Visitors: <strong className="text-amber-400 font-mono">8,381,925</strong></span>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-800/60 pt-3 flex flex-wrap items-center justify-between gap-3 text-[11px]">
+            <span className="text-slate-500 font-medium">Official Government Portal of Maharashtra State Road Transport Corporation</span>
+            
+            <a
+              href="https://kartik-modi.netlify.app"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 font-bold text-slate-300 hover:text-amber-300 transition-all bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 px-3.5 py-1 rounded-full shadow-sm group"
+            >
+              <span>Made with</span>
+              <Heart className="w-3.5 h-3.5 text-red-500 fill-current animate-pulse" />
+              <span>by</span>
+              <strong className="text-amber-400 group-hover:underline underline-offset-2 font-extrabold">Kartik Modi</strong>
+            </a>
           </div>
         </div>
       </div>
