@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-msrtc-navy: #071126;
+    --color-msrtc-red: #A9161C;
+    --color-msrtc-warmred: #C81E25;
+    --color-msrtc-gold: #F5B400;
+    --color-msrtc-bg: #F5F7FA;
+    --color-msrtc-ev: #10B981;
+  }
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Inter', 'Noto Sans Devanagari', sans-serif;
+  background-color: #F5F7FA;
+  color: #071126;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Horizontal Continuous Marquee Animation */
+@keyframes marqueeTrack {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeTrack 25s linear infinite;
+}
+
+.animate-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Glowing Border Effect */
+.glow-card {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.glow-card:hover {
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+}
+
+/* Glassmorphism Backgrounds */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
