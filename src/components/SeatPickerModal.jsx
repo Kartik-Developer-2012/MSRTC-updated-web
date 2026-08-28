@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { X, Check, ShieldCheck, Ticket } from 'lucide-react';
+import { addBooking } from '../utils/bookingStorage';
+import { X, Check, ShieldCheck, Ticket, ArrowRight, ExternalLink } from 'lucide-react';
 
 export const SeatPickerModal = ({ bus, onClose }) => {
   const { lang } = useLanguage();
+  const navigate = useNavigate();
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookedSuccess, setBookedSuccess] = useState(false);
+  const [createdTicket, setCreatedTicket] = useState(null);
 
   if (!bus) return null;
 
@@ -23,40 +27,95 @@ export const SeatPickerModal = ({ bus, onClose }) => {
 
   const totalPrice = selectedSeats.length * bus.fare;
 
+  const handleConfirmBooking = () => {
+    if (selectedSeats.length === 0) return;
+
+    const ticket = addBooking({
+      busId: bus.id,
+      busType: bus.busType,
+      from: bus.from,
+      to: bus.to,
+      via: bus.via,
+      departure: bus.departure,
+      arrival: bus.arrival,
+      journeyDate: new Date().toISOString().split('T')[0],
+      seats: selectedSeats,
+      totalPrice: totalPrice,
+      passengerName: 'Valued Passenger',
+    });
+
+    setCreatedTicket(ticket);
+    setBookedSuccess(true);
+  };
+
+  const handleViewTickets = () => {
+    onClose();
+    navigate('/my-tickets');
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative animate-in zoom-in-95 max-h-[90vh] overflow-y-auto font-sans">
         
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600"
+          className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         {bookedSuccess ? (
-          <div className="text-center py-8 space-y-4">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+          <div className="text-center py-6 space-y-5">
+            <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto shadow-inner">
               <Ticket className="w-8 h-8" />
             </div>
-            <h3 className="font-extrabold text-xl text-slate-900">
-              {lang === 'en' ? 'Seat Reserved Successfully!' : 'सीट आरक्षण यशस्वी!'}
-            </h3>
-            <p className="text-xs text-slate-600">
-              {lang === 'en'
-                ? `Reserved ${selectedSeats.length} seat(s) on ${bus.busType} (${bus.from} ➔ ${bus.to})`
-                : `${bus.busType} वर ${selectedSeats.length} जागा आरक्षित झाल्या (${bus.from} ➔ ${bus.to})`}
-            </p>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 space-y-1">
-              <div>{lang === 'en' ? 'Seat Numbers:' : 'सीट क्रमांक:'} <span className="text-red-900 font-bold">{selectedSeats.join(', ')}</span></div>
-              <div>{lang === 'en' ? 'Total Fare Paid:' : 'एकूण भरलेले भाडे:'} <span className="text-emerald-700 font-bold">₹{totalPrice}</span></div>
+            
+            <div className="space-y-1">
+              <h3 className="font-extrabold text-xl text-slate-900">
+                {lang === 'en' ? 'Seat Reserved Successfully!' : 'सीट आरक्षण यशस्वी!'}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {lang === 'en'
+                  ? `Reserved ${selectedSeats.length} seat(s) on ${bus.busType} (${bus.from} ➔ ${bus.to})`
+                  : `${bus.busType} वर ${selectedSeats.length} जागा आरक्षित झाल्या (${bus.from} ➔ ${bus.to})`}
+              </p>
             </div>
-            <button
-              onClick={onClose}
-              className="bg-red-900 hover:bg-red-950 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition-colors"
-            >
-              {lang === 'en' ? 'Close' : 'बंद करा'}
-            </button>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs font-semibold text-slate-800 space-y-2 text-left">
+              {createdTicket && (
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="text-slate-500">{lang === 'en' ? 'PNR Number:' : 'पीएनआर क्रमांक:'}</span>
+                  <span className="font-mono font-bold text-red-950 bg-amber-100 px-2 py-0.5 rounded">{createdTicket.pnr}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">{lang === 'en' ? 'Seat Numbers:' : 'सीट क्रमांक:'}</span>
+                <span className="text-red-900 font-bold">{selectedSeats.join(', ')}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500">{lang === 'en' ? 'Total Fare Paid:' : 'एकूण भरलेले भाडे:'}</span>
+                <span className="text-emerald-700 font-bold text-sm">₹{totalPrice}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                onClick={handleViewTickets}
+                className="bg-red-900 hover:bg-red-950 text-white font-extrabold text-xs px-5 py-3 rounded-xl transition-all shadow-md flex items-center gap-2"
+              >
+                <Ticket className="w-4 h-4 text-amber-400" />
+                <span>{lang === 'en' ? 'View My Ticket Details' : 'माझी तिकिटे व तपशील पहा'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={onClose}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-5 py-3 rounded-xl transition-colors"
+              >
+                {lang === 'en' ? 'Close' : 'बंद करा'}
+              </button>
+            </div>
+
           </div>
         ) : (
           <>
@@ -117,7 +176,7 @@ export const SeatPickerModal = ({ bus, onClose }) => {
 
               <button
                 disabled={selectedSeats.length === 0}
-                onClick={() => setBookedSuccess(true)}
+                onClick={handleConfirmBooking}
                 className="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-lg transition-colors"
               >
                 {lang === 'en' ? 'Confirm Booking' : 'आरक्षण निश्चित करा'}

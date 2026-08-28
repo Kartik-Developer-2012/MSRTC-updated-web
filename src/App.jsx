@@ -26,6 +26,7 @@ import { FAQPage } from './pages/FAQPage';
 import { RecruitmentPage } from './pages/RecruitmentPage';
 import { ContactUs } from './pages/ContactUs';
 import { RouteTimetablePage } from './pages/RouteTimetablePage';
+import { MyBookings } from './pages/MyBookings';
 
 export default function App() {
   const [voiceModalOpen, setVoiceModalOpen] = useState(false);
@@ -73,6 +74,7 @@ export default function App() {
               <Route path="/recruitment" element={<RecruitmentPage />} />
               <Route path="/contact" element={<ContactUs onOpenComplaintModal={() => setComplaintModalOpen(true)} />} />
               <Route path="/routes" element={<RouteTimetablePage />} />
+              <Route path="/my-tickets" element={<MyBookings />} />
             </Routes>
           </main>
 

@@ -73,6 +73,12 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-2.5 font-medium">
               <li>
+                <Link to="/my-tickets" className="hover:text-amber-300 transition-colors flex items-center gap-1.5 group text-amber-400 font-bold">
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+                  <span>{lang === 'en' ? 'My Tickets & Bookings' : 'माझी आरक्षित तिकिटे'}</span>
+                </Link>
+              </li>
+              <li>
                 <Link to="/about" className="hover:text-amber-300 transition-colors flex items-center gap-1.5 group">
                   <ChevronRight className="w-3.5 h-3.5 text-red-500 group-hover:translate-x-0.5 transition-transform" />
                   <span>{lang === 'en' ? 'About MSRTC' : 'आमच्याबद्दल'}</span>

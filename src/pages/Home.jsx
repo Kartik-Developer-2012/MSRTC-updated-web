@@ -12,6 +12,12 @@ import { InfoSection } from '../components/InfoSection';
 import { DepotFinder } from '../components/DepotFinder';
 
 export const Home = ({ onOpenComplaintModal, onSelectSeatBus }) => {
+  const [selectedRoute, setSelectedRoute] = React.useState(null);
+
+  const handleSelectRoute = (from, to) => {
+    setSelectedRoute({ from, to, timestamp: Date.now() });
+  };
+
   return (
     <div className="flex flex-col w-full overflow-hidden bg-[#F5F7FA] font-sans">
       
@@ -23,11 +29,11 @@ export const Home = ({ onOpenComplaintModal, onSelectSeatBus }) => {
 
       {/* 3. Bus Schedule Search Bar */}
       <div className="py-4">
-        <BusScheduleSearch onSelectSeatBus={onSelectSeatBus} />
+        <BusScheduleSearch onSelectSeatBus={onSelectSeatBus} selectedRoute={selectedRoute} />
       </div>
 
       {/* 4. Popular Routes Section */}
-      <PopularRoutes />
+      <PopularRoutes onSelectRoute={handleSelectRoute} />
 
       {/* 5. Quick Action Hub (Bento Grid) */}
       <QuickActionHub onOpenComplaintModal={onOpenComplaintModal} />

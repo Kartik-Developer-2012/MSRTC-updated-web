@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { ArrowRight, Clock, Bus, Sparkles, MapPin, Ticket } from 'lucide-react';
 
-export const PopularRoutes = () => {
+export const PopularRoutes = ({ onSelectRoute }) => {
   const { lang } = useLanguage();
 
   const routes = [
@@ -32,7 +32,7 @@ export const PopularRoutes = () => {
     {
       id: 'mumbai-nashik',
       from: 'Mumbai (Borivali)',
-      to: 'Nashik (Thakkar Dome)',
+      to: 'Nashik (CBS)',
       busTypes: 'Shivneri AC Volvo',
       duration: '4h 00m',
       fare: '480',
@@ -43,7 +43,7 @@ export const PopularRoutes = () => {
     {
       id: 'pune-kolhapur',
       from: 'Pune (Swargate)',
-      to: 'Kolhapur (CBS)',
+      to: 'Kolhapur',
       busTypes: 'Shivshahi AC / Sleeper',
       duration: '5h 15m',
       fare: '560',
@@ -53,8 +53,8 @@ export const PopularRoutes = () => {
     },
     {
       id: 'mumbai-sambhajinagar',
-      from: 'Mumbai (Kurla Nehrunagar)',
-      to: 'Chhatrapati Sambhajinagar',
+      from: 'Mumbai (Dadar)',
+      to: 'Chhatrapati Sambhajinagar (Aurangabad)',
       busTypes: 'Shivneri Volvo / Sleeper',
       duration: '7h 30m',
       fare: '750',
@@ -65,7 +65,7 @@ export const PopularRoutes = () => {
     {
       id: 'pune-nagpur',
       from: 'Pune (Swargate)',
-      to: 'Nagpur (Ganeshpeth)',
+      to: 'Nagpur',
       busTypes: 'Shivshahi AC Sleeper',
       duration: '12h 00m',
       fare: '1,250',
@@ -170,13 +170,18 @@ export const PopularRoutes = () => {
                   <span className="text-lg font-black text-[#071126]">₹{route.fare}</span>
                 </div>
 
-                <a
-                  href="#bus-search"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#071126] hover:bg-[#A9161C] text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectRoute) {
+                      onSelectRoute(route.from, route.to);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#071126] hover:bg-[#A9161C] text-white text-xs font-bold rounded-xl transition-colors shadow-sm cursor-pointer"
                 >
                   <Ticket className="w-3.5 h-3.5 text-amber-400" />
                   <span>{lang === 'en' ? 'View Buses' : 'बसेस पहा'}</span>
-                </a>
+                </button>
               </div>
             </motion.div>
           ))}

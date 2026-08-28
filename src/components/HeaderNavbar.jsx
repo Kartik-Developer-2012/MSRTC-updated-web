@@ -143,6 +143,19 @@ export const HeaderNavbar = ({ onOpenComplaintModal }) => {
             {lang === 'en' ? 'Timetable PDF' : 'वेळापत्रक'}
           </Link>
 
+          {/* My Tickets */}
+          <Link
+            to="/my-tickets"
+            className={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 ${
+              isActive('/my-tickets')
+                ? 'bg-gradient-to-r from-red-900 via-red-950 to-red-900 text-white font-extrabold shadow-md shadow-red-900/20'
+                : 'hover:bg-slate-100 hover:text-red-900 text-slate-700'
+            }`}
+          >
+            <Ticket className="w-3.5 h-3.5 text-amber-500" />
+            <span>{lang === 'en' ? 'My Tickets' : 'माझी तिकिटे'}</span>
+          </Link>
+
           {/* Contact */}
           <Link
             to="/contact"
@@ -213,6 +226,10 @@ export const HeaderNavbar = ({ onOpenComplaintModal }) => {
 
           <Link to="/tenders" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 border-b border-slate-100 text-slate-800 font-bold">{lang === 'en' ? 'Tenders & Auctions' : 'निविदा व लिलाव'}</Link>
           <Link to="/routes" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 border-b border-slate-100 text-slate-800 font-bold">{lang === 'en' ? 'Bus Timetable PDF' : 'वेळापत्रक डाउनलोड'}</Link>
+          <Link to="/my-tickets" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 border-b border-slate-100 text-red-950 font-extrabold flex items-center gap-2">
+            <Ticket className="w-4 h-4 text-amber-600" />
+            <span>{lang === 'en' ? 'My Bus Tickets & Seat Details' : 'माझी तिकिटे व आरक्षित जागा'}</span>
+          </Link>
           <Link to="/contact" onClick={() => setMobileMenuOpen(false)} className="block py-2.5 border-b border-slate-100 text-slate-800 font-bold">{lang === 'en' ? 'Contact Us' : 'संपर्क'}</Link>
 
           <button

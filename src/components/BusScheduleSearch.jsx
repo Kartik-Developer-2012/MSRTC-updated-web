@@ -3,16 +3,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { useLanguage } from '../context/LanguageContext';
 import { msrtcData } from '../data/msrtcData';
-import { MapPin, Calendar, Bus, Search, ArrowRightLeft, Clock, Ticket, CheckCircle, Info, Sparkles } from 'lucide-react';
+import { searchBusSchedules } from '../utils/busSearchEngine';
+import { MapPin, Calendar, Bus, Search, ArrowRightLeft, Clock, Ticket, CheckCircle, Info, Sparkles, AlertCircle, ArrowUpDown } from 'lucide-react';
 
-export const BusScheduleSearch = ({ onSelectSeatBus }) => {
+export const BusScheduleSearch = ({ onSelectSeatBus, selectedRoute }) => {
   const { lang } = useLanguage();
   const [fromCity, setFromCity] = useState("Mumbai (Dadar)");
   const [toCity, setToCity] = useState("Pune (Swargate)");
-  const [journeyDate, setJourneyDate] = useState("2026-08-26");
+  const [journeyDate, setJourneyDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
   const [selectedCategory, setSelectedCategory] = useState("0");
-  const [searchTriggered, setSearchTriggered] = useState(false);
-  const [filteredSchedules, setFilteredSchedules] = useState(msrtcData.sampleSchedules);
+  const [searchTriggered, setSearchTriggered] = useState(true);
+  const [searchResponse, setSearchResponse] = useState(null);
+  const [sortBy, setSortBy] = useState("time"); // 'time' | 'fare' | 'duration'
   const searchBoxRef = useRef(null);
 
   useEffect(() => {
@@ -23,31 +28,60 @@ export const BusScheduleSearch = ({ onSelectSeatBus }) => {
         { y: 0, opacity: 1, duration: 0.8, ease: "power2.out" }
       );
     }
+    // Perform default initial search
+    executeSearch("Mumbai (Dadar)", "Pune (Swargate)", journeyDate, "0");
   }, []);
 
+  useEffect(() => {
+    if (selectedRoute && selectedRoute.from && selectedRoute.to) {
+      setFromCity(selectedRoute.from);
+      setToCity(selectedRoute.to);
+      executeSearch(selectedRoute.from, selectedRoute.to, journeyDate, selectedCategory);
+      
+      const el = document.getElementById('bus-search');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [selectedRoute]);
+
   const handleSwap = () => {
-    const temp = fromCity;
-    setFromCity(toCity);
-    setToCity(temp);
+    const newFrom = toCity;
+    const newTo = fromCity;
+    setFromCity(newFrom);
+    setToCity(newTo);
+    executeSearch(newFrom, newTo, journeyDate, selectedCategory);
+  };
+
+  const executeSearch = (fCity, tCity, date, catId) => {
+    setSearchTriggered(true);
+    const res = searchBusSchedules(fCity, tCity, date, catId);
+    setSearchResponse(res);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setSearchTriggered(true);
-    let results = msrtcData.sampleSchedules.filter(sch => {
-      const matchFrom = sch.from.toLowerCase().includes(fromCity.toLowerCase().split(" ")[0]);
-      const matchTo = sch.to.toLowerCase().includes(toCity.toLowerCase().split(" ")[0]);
-      return matchFrom || matchTo;
-    });
-
-    if (results.length === 0) {
-      results = msrtcData.sampleSchedules;
-    }
-    setFilteredSchedules(results);
+    executeSearch(fromCity, toCity, journeyDate, selectedCategory);
   };
 
+  // Process sorting if valid results exist
+  const getSortedResults = () => {
+    if (!searchResponse || searchResponse.error || !searchResponse.results) return [];
+    const list = [...searchResponse.results];
+    
+    if (sortBy === 'fare') {
+      return list.sort((a, b) => a.fare - b.fare);
+    }
+    if (sortBy === 'duration') {
+      return list.sort((a, b) => a.distanceKm - b.distanceKm);
+    }
+    return list; // default time sorted
+  };
+
+  const sortedResults = getSortedResults();
+
   return (
-    <div id="bus-search" className="relative z-30 max-w-7xl mx-auto px-4 py-4">
+    <div id="bus-search" className="relative z-30 max-w-7xl mx-auto px-4 py-4 font-sans">
       
       {/* Search Widget Container */}
       <motion.div
@@ -179,81 +213,122 @@ export const BusScheduleSearch = ({ onSelectSeatBus }) => {
 
       {/* Animated Results Section */}
       <AnimatePresence>
-        {searchTriggered && (
+        {searchTriggered && searchResponse && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className="mt-8 bg-white rounded-3xl shadow-xl border border-slate-200 p-6 md:p-8"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4 mb-6">
-              <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <span>{filteredSchedules.length} {lang === 'en' ? 'Buses Available for Selected Route' : 'उपलब्ध बसेसची यादी'}</span>
-              </h4>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{fromCity} ➔ {toCity} ({journeyDate})</span>
-            </div>
-
-            <div className="space-y-4">
-              {filteredSchedules.map((sch, idx) => (
-                <motion.div
-                  key={sch.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.08 }}
-                  whileHover={{ scale: 1.01, borderColor: "rgba(220, 38, 38, 0.4)" }}
-                  className="bg-slate-50 hover:bg-red-50/40 border border-slate-200 rounded-2xl p-5 transition-all flex flex-wrap items-center justify-between gap-4 shadow-sm"
-                >
-                  
-                  {/* Bus Info */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-base text-slate-900">{sch.busType}</span>
-                      <span className="text-[11px] bg-red-950 text-amber-300 font-bold px-2.5 py-0.5 rounded-full">{sch.id}</span>
-                    </div>
-                    <p className="text-xs text-slate-600 flex items-center gap-1">
-                      <Info className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{lang === 'en' ? 'Via:' : 'मार्ग:'} <strong>{sch.via}</strong></span>
+            {searchResponse.error ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center space-y-2 text-amber-900">
+                <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
+                <h4 className="font-bold text-base">{searchResponse.message}</h4>
+              </div>
+            ) : (
+              <>
+                {/* Header & Sorting Bar */}
+                <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-4 mb-6 gap-4">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-600" />
+                      <span>
+                        {sortedResults.length} {lang === 'en' ? 'Buses Operating on Selected Route' : 'उपलब्ध बसेसची यादी'}
+                      </span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {fromCity} ➔ {toCity} ({journeyDate}) • Distance ~ <strong>{searchResponse.distanceKm} km</strong>
                     </p>
                   </div>
 
-                  {/* Timing */}
-                  <div className="flex items-center gap-6 text-xs font-semibold text-slate-800">
-                    <div className="text-center">
-                      <div className="text-base font-extrabold text-slate-900">{sch.departure}</div>
-                      <div className="text-[11px] text-slate-500">{sch.from}</div>
-                    </div>
-                    <div className="flex flex-col items-center text-[10px] text-slate-400">
-                      <span>{sch.duration}</span>
-                      <div className="w-20 h-0.5 bg-red-900/30 my-1"></div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-base font-extrabold text-slate-900">{sch.arrival}</div>
-                      <div className="text-[11px] text-slate-500">{sch.to}</div>
-                    </div>
-                  </div>
-
-                  {/* Fare & Seats */}
-                  <div className="flex items-center gap-5">
-                    <div className="text-right">
-                      <div className="text-xl font-black text-red-950">₹{sch.fare}</div>
-                      <div className="text-[11px] text-emerald-700 font-bold">{sch.seatsAvailable} {lang === 'en' ? 'seats left' : 'जागा उपलब्ध'}</div>
-                    </div>
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => onSelectSeatBus(sch)}
-                      className="bg-gradient-to-r from-red-900 to-red-950 hover:from-red-950 hover:to-red-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md"
+                  {/* Sort Options */}
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 bg-slate-100 p-1 rounded-xl">
+                    <span className="px-2 text-slate-400 flex items-center gap-1">
+                      <ArrowUpDown className="w-3.5 h-3.5" />
+                      <span>Sort:</span>
+                    </span>
+                    <button
+                      onClick={() => setSortBy('time')}
+                      className={`px-3 py-1.5 rounded-lg transition-all ${sortBy === 'time' ? 'bg-white text-red-950 font-bold shadow-sm' : 'hover:text-slate-900'}`}
                     >
-                      <Ticket className="w-4 h-4 text-amber-400" />
-                      <span>{lang === 'en' ? 'Select Seats' : 'सीट निवडा'}</span>
-                    </motion.button>
+                      {lang === 'en' ? 'Departure Time' : 'प्रस्थान वेळ'}
+                    </button>
+                    <button
+                      onClick={() => setSortBy('fare')}
+                      className={`px-3 py-1.5 rounded-lg transition-all ${sortBy === 'fare' ? 'bg-white text-red-950 font-bold shadow-sm' : 'hover:text-slate-900'}`}
+                    >
+                      {lang === 'en' ? 'Lowest Fare' : 'कमी भाडे'}
+                    </button>
                   </div>
+                </div>
 
-                </motion.div>
-              ))}
-            </div>
+                {/* Schedules List */}
+                <div className="space-y-4">
+                  {sortedResults.map((sch, idx) => (
+                    <motion.div
+                      key={sch.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      whileHover={{ scale: 1.01, borderColor: "rgba(220, 38, 38, 0.4)" }}
+                      className="bg-slate-50 hover:bg-red-50/40 border border-slate-200 rounded-2xl p-5 transition-all flex flex-wrap items-center justify-between gap-4 shadow-sm"
+                    >
+                      
+                      {/* Bus Info & Features */}
+                      <div className="space-y-1.5 max-w-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-base text-slate-900">{sch.busType}</span>
+                          <span className="text-[10px] bg-red-950 text-amber-300 font-mono font-bold px-2.5 py-0.5 rounded-full">{sch.busId}</span>
+                        </div>
+                        <p className="text-xs text-slate-600 flex items-center gap-1">
+                          <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{lang === 'en' ? 'Via:' : 'मार्ग:'} <strong>{sch.via}</strong></span>
+                        </p>
+                        <div className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 inline-block font-medium">
+                          {sch.features}
+                        </div>
+                      </div>
+
+                      {/* Timing */}
+                      <div className="flex items-center gap-6 text-xs font-semibold text-slate-800">
+                        <div className="text-center">
+                          <div className="text-base font-extrabold text-slate-900">{sch.departure}</div>
+                          <div className="text-[11px] text-slate-500 truncate max-w-[100px]">{sch.from}</div>
+                        </div>
+                        <div className="flex flex-col items-center text-[10px] text-slate-400">
+                          <span>{sch.duration}</span>
+                          <div className="w-20 h-0.5 bg-red-900/30 my-1"></div>
+                          <span className="text-[9px] text-slate-400">{sch.distanceKm} km</span>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-base font-extrabold text-slate-900">{sch.arrival}</div>
+                          <div className="text-[11px] text-slate-500 truncate max-w-[100px]">{sch.to}</div>
+                        </div>
+                      </div>
+
+                      {/* Fare & Reserve Seats Button */}
+                      <div className="flex items-center gap-5">
+                        <div className="text-right">
+                          <div className="text-xl font-black text-red-950">₹{sch.fare}</div>
+                          <div className="text-[11px] text-emerald-700 font-bold">{sch.seatsAvailable} {lang === 'en' ? 'seats left' : 'जागा उपलब्ध'}</div>
+                        </div>
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => onSelectSeatBus(sch)}
+                          className="bg-gradient-to-r from-red-900 to-red-950 hover:from-red-950 hover:to-red-900 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all flex items-center gap-2 shadow-md"
+                        >
+                          <Ticket className="w-4 h-4 text-amber-400" />
+                          <span>{lang === 'en' ? 'Select Seats' : 'सीट निवडा'}</span>
+                        </motion.button>
+                      </div>
+
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
